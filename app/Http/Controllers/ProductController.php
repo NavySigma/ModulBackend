@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ProductModel;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Validator;
 
 class ProductController extends Controller
@@ -12,7 +13,10 @@ class ProductController extends Controller
     public function index()
     {
         try {
-            $products = ProductModel::getProducts();
+            $products = Cache::remember('products', 60 * 60 * 24, function () {
+                return ProductModel::getProducts();
+            });
+
             $response = [
                 'success' => true,
                 'message' => 'Successfully get products data.',
@@ -35,11 +39,14 @@ class ProductController extends Controller
     public function show(int $product_id)
     {
         try {
-            $products = ProductModel::getProductById($product_id);
+            $product = Cache::remember("products.{$product_id}", 60 * 60 * 24, function () use ($product_id) {
+                return ProductModel::getProductById($product_id);
+            });
+
             $response = [
                 'success' => true,
                 'message' => 'Successfully get products data.',
-                'data' => $products,
+                'data' => $product,
             ];
 
             return response()->json($response, 200);
@@ -77,6 +84,9 @@ class ProductController extends Controller
             }
 
             $product = ProductModel::createProduct($validator->validated());
+
+            Cache::forget('products');
+
             $response = [
                 'success' => true,
                 'message' => 'Successfully create product data',
@@ -118,6 +128,10 @@ class ProductController extends Controller
             }
 
             $product = ProductModel::updateProduct($product_id, $validator->validated());
+
+            Cache::forget('products');
+            Cache::forget("products.{$product_id}");
+
             $response = [
                 'success' => true,
                 'message' => 'Successfully update product data',
@@ -141,6 +155,10 @@ class ProductController extends Controller
     {
         try {
             $product = ProductModel::deleteProduct($product_id);
+
+            Cache::forget('products');
+            Cache::forget("products.{$product_id}");
+
             $response = [
                 'success' => true,
                 'message' => 'Successfully delete product data',

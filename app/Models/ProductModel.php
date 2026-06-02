@@ -53,7 +53,7 @@ class ProductModel extends Model
     // Method untuk PATCH (update) data Product
     public static function updateProduct(int $product_id, $data)
     {
-        $product = self::find($product_id);
+        $product = self::findOrFail($product_id);
         $product->update($data);
 
         return $product;
@@ -62,7 +62,7 @@ class ProductModel extends Model
     // Method untuk DELETE (delete) data Product
     public static function deleteProduct(int $product_id)
     {
-        $product = self::find($product_id);
+        $product = self::findOrFail($product_id);
         $product->delete();
 
         return $product;

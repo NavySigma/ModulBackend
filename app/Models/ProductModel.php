@@ -14,23 +14,30 @@ class ProductModel extends Model
     protected $primaryKey = 'product_id';
 
     protected $fillable = [
+        'category_id',
         'product_name',
         'product_stock',
         'product_price',
     ];
 
-    // Method untuk GET semua data Products
+    // Relasi: Product belongsTo Category
+    public function category()
+    {
+        return $this->belongsTo(ProductCategories::class, 'category_id', 'category_id');
+    }
+
+    // Method untuk GET semua data Products (include Category)
     public static function getProducts()
     {
-        $products = self::all();
+        $products = self::with('category')->get();
 
         return $products;
     }
 
-    // Method untuk GET data Product by ID
+    // Method untuk GET data Product by ID (include Category)
     public static function getProductById(int $product_id)
     {
-        $product = self::find($product_id);
+        $product = self::with('category')->find($product_id);
 
         return $product;
     }
@@ -56,7 +63,7 @@ class ProductModel extends Model
     public static function deleteProduct(int $product_id)
     {
         $product = self::find($product_id);
-        $product->destroy($product);
+        $product->delete();
 
         return $product;
     }

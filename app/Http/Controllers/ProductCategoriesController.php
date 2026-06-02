@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ProductModel;
+use App\Models\ProductCategories;
 use Exception;
 use Illuminate\Http\Request;
 use Validator;
 
-class ProductController extends Controller
+class ProductCategoriesController extends Controller
 {
     public function index()
     {
         try {
-            $products = ProductModel::getProducts();
+            $categories = ProductCategories::getCategories();
             $response = [
                 'success' => true,
-                'message' => 'Successfully get products data.',
-                'data' => $products,
+                'message' => 'Successfully get categories data.',
+                'data' => $categories,
             ];
 
             return response()->json($response, 200);
@@ -32,14 +32,14 @@ class ProductController extends Controller
         }
     }
 
-    public function show(int $product_id)
+    public function show(int $category_id)
     {
         try {
-            $products = ProductModel::getProductById($product_id);
+            $category = ProductCategories::getCategoryById($category_id);
             $response = [
                 'success' => true,
-                'message' => 'Successfully get products data.',
-                'data' => $products,
+                'message' => 'Successfully get category data.',
+                'data' => $category,
             ];
 
             return response()->json($response, 200);
@@ -59,16 +59,14 @@ class ProductController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'category_id' => 'required|integer|exists:product_categories,category_id',
-                'product_name' => 'required|string|max:100',
-                'product_stock' => 'required|numeric',
-                'product_price' => 'required|numeric',
+                'category_name' => 'required|string|max:100',
+                'category_desc' => 'required|string',
             ]);
 
             if ($validator->fails()) {
                 $response = [
                     'success' => false,
-                    'message' => 'Failed to create data product. Data not completed, please check your data.',
+                    'message' => 'Failed to create category data. Data not completed, please check your data.',
                     'data' => null,
                     'errors' => $validator->errors(),
                 ];
@@ -76,11 +74,11 @@ class ProductController extends Controller
                 return response()->json($response, 400);
             }
 
-            $product = ProductModel::createProduct($validator->validated());
+            $category = ProductCategories::createCategory($validator->validated());
             $response = [
                 'success' => true,
-                'message' => 'Successfully create product data',
-                'data' => $product,
+                'message' => 'Successfully create category data',
+                'data' => $category,
             ];
 
             return response()->json($response, 201);
@@ -96,20 +94,18 @@ class ProductController extends Controller
         }
     }
 
-    public function update(Request $request, int $product_id)
+    public function update(Request $request, int $category_id)
     {
         try {
             $validator = Validator::make($request->all(), [
-                'category_id' => 'required|integer|exists:product_categories,category_id',
-                'product_name' => 'required|string|max:100',
-                'product_stock' => 'required|numeric',
-                'product_price' => 'required|numeric',
+                'category_name' => 'required|string|max:100',
+                'category_desc' => 'required|string',
             ]);
 
             if ($validator->fails()) {
                 $response = [
                     'success' => false,
-                    'message' => 'Failed to create data product. Data not completed, please check your data.',
+                    'message' => 'Failed to update category data. Data not completed, please check your data.',
                     'data' => null,
                     'errors' => $validator->errors(),
                 ];
@@ -117,11 +113,11 @@ class ProductController extends Controller
                 return response()->json($response, 400);
             }
 
-            $product = ProductModel::updateProduct($product_id, $validator->validated());
+            $category = ProductCategories::updateCategory($category_id, $validator->validated());
             $response = [
                 'success' => true,
-                'message' => 'Successfully update product data',
-                'data' => $product,
+                'message' => 'Successfully update category data',
+                'data' => $category,
             ];
 
             return response()->json($response, 200);
@@ -137,14 +133,14 @@ class ProductController extends Controller
         }
     }
 
-    public function destroy(int $product_id)
+    public function destroy(int $category_id)
     {
         try {
-            $product = ProductModel::deleteProduct($product_id);
+            $category = ProductCategories::deleteCategory($category_id);
             $response = [
                 'success' => true,
-                'message' => 'Successfully delete product data',
-                'data' => $product,
+                'message' => 'Successfully delete category data',
+                'data' => $category,
             ];
 
             return response()->json($response, 200);

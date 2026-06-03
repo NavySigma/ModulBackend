@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ProductCategories;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Validator;
 
 class ProductCategoriesController extends Controller
@@ -12,7 +13,10 @@ class ProductCategoriesController extends Controller
     public function index()
     {
         try {
-            $categories = ProductCategories::getCategories();
+            $categories = Cache::remember('product_categories', 60 * 5, function () {
+                return ProductCategories::getCategories();
+            });
+
             $response = [
                 'success' => true,
                 'message' => 'Successfully get categories data.',
@@ -35,7 +39,10 @@ class ProductCategoriesController extends Controller
     public function show(int $category_id)
     {
         try {
-            $category = ProductCategories::getCategoryById($category_id);
+            $category = Cache::remember("product_categories.{$category_id}", 60 * 5, function () use ($category_id) {
+                return ProductCategories::getCategoryById($category_id);
+            });
+
             $response = [
                 'success' => true,
                 'message' => 'Successfully get category data.',
@@ -75,6 +82,10 @@ class ProductCategoriesController extends Controller
             }
 
             $category = ProductCategories::createCategory($validator->validated());
+
+            Cache::forget('product_categories');
+            Cache::put('product_categories', ProductCategories::getCategories(), 60 * 5);
+
             $response = [
                 'success' => true,
                 'message' => 'Successfully create category data',
@@ -114,6 +125,12 @@ class ProductCategoriesController extends Controller
             }
 
             $category = ProductCategories::updateCategory($category_id, $validator->validated());
+
+            Cache::forget('product_categories');
+            Cache::forget("product_categories.{$category_id}");
+            Cache::put('product_categories', ProductCategories::getCategories(), 60 * 5);
+            Cache::put("product_categories.{$category_id}", $category, 60 * 5);
+
             $response = [
                 'success' => true,
                 'message' => 'Successfully update category data',
@@ -137,6 +154,11 @@ class ProductCategoriesController extends Controller
     {
         try {
             $category = ProductCategories::deleteCategory($category_id);
+
+            Cache::forget('product_categories');
+            Cache::forget("product_categories.{$category_id}");
+            Cache::put('product_categories', ProductCategories::getCategories(), 60 * 5);
+
             $response = [
                 'success' => true,
                 'message' => 'Successfully delete category data',

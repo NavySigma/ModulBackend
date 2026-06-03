@@ -39,14 +39,15 @@ class ProductController extends Controller
     public function show(int $product_id)
     {
         try {
-            $product = Cache::remember("products.{$product_id}", 60 * 60 * 24, function () use ($product_id) {
+            $cacheKey = 'product_'.$product_id;
+            $products = Cache::remember($cacheKey, 60 * 60 * 24, function () use ($product_id) {
                 return ProductModel::getProductById($product_id);
             });
 
             $response = [
                 'success' => true,
                 'message' => 'Successfully get products data.',
-                'data' => $product,
+                'data' => $products,
             ];
 
             return response()->json($response, 200);
@@ -84,9 +85,7 @@ class ProductController extends Controller
             }
 
             $product = ProductModel::createProduct($validator->validated());
-
-            Cache::forget('products');
-
+            Cache::put('products', ProductModel::getProducts(), 60 * 60 * 24);
             $response = [
                 'success' => true,
                 'message' => 'Successfully create product data',
